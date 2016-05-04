@@ -5,12 +5,14 @@ import Ubuntu.Components 1.3
 Item {
     id: root
     signal clicked(var instance)
-    anchors.fill: parent
+    property alias currentIndex : listView.currentIndex
+    property alias model: listView.model
+    property alias listview: listView
 
     function reload() {
         console.log('reloading')
         model.clear();
-        pocoRssModel.reload()
+        picoRssModel.reload()
     }
 
     ListModel {
@@ -18,17 +20,17 @@ Item {
     }
 
     XmlListModel {
-        id: pocoRssModel
+        id: picoRssModel
         source: "http://my.poco.cn/rss_gen/poco_rss_channel.photo.php?sub_icon=figure"
         query: "/rss/channel/item[child::enclosure]"
 
         onStatusChanged: {
             if (status === XmlListModel.Ready) {
                 for (var i = 0; i < count; i++) {
-                    //  console.log("title: " + get(i).title);
-                    //  console.log("published: " + get(i).published );
-                    //  console.log("image: " + get(i).image);
-                    console.log("image: " + get(i).content);
+                    // console.log("title: " + get(i).title);
+                    // console.log("published: " + get(i).published );
+                    // console.log("image: " + get(i).image);
+                    // console.log("image: " + get(i).content);
 
                     var title = get(i).title.toLowerCase();
                     var published = get(i).published.toLowerCase();
@@ -55,20 +57,41 @@ Item {
         XmlRole { name: "image"; query: "enclosure/@url/string()" }
     }
 
-    GridView {
-        id: gridview
+    UbuntuListView {
+        id: listView
         width: parent.width
         height: parent.height - inputcontainer.height
         clip: true
-        cellWidth: parent.width/2
-        cellHeight: cellWidth + units.gu(1)
-        x: units.gu(1.2)
+        visible: true
+
         model: model
 
-        delegate: GridDelegate {}
+        delegate: ListDelegate {}
+
+        // Define a highlight with customized movement between items.
+        Component {
+            id: highlightBar
+            Rectangle {
+                width: 200; height: 50
+                color: "#FFFF88"
+                y: listView.currentItem.y;
+                Behavior on y { SpringAnimation { spring: 2; damping: 0.1 } }
+            }
+        }
+
+        highlightFollowsCurrentItem: true
+
+        focus: true
+        // highlight: highlightBar
 
         Scrollbar {
-            flickableItem: gridview
+            flickableItem: listView
+        }
+
+        PullToRefresh {
+            onRefresh: {
+                reload()
+            }
         }
     }
 

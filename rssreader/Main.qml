@@ -59,6 +59,7 @@ MainView {
 
                 onClicked: {
                     articleContent.text = instance.content
+                    articleContent.image = instance.image
                     layout.addPageToNextColumn(listPage, contentPage)
                 }
             }
